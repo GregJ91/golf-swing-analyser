@@ -1,11 +1,21 @@
-# Golf Swing Analyser — Design (v1: Pose Overlay + Key Angles)
+# Golf Swing Analyser — Design (v1: Pose Overlay + Key Angles + Swing Metrics)
 
 ## Purpose
-A personal tool to analyse golf swing mechanics from video. Record or upload a
-swing clip on a phone, see a pose skeleton overlaid on the video, mark the key
-swing positions, and get measured body angles at each position. Session
-history and trend tracking across swings is an explicit fast-follow (phase 2),
-not part of this build.
+A personal tool to analyse golf swing mechanics from video, aimed at
+identifying what's costing distance and accuracy. Record or upload a swing
+clip on a phone, see a pose skeleton overlaid on the video, mark the key swing
+positions, and get measured body angles plus power/fault metrics benchmarked
+against pro ranges. Session history and trend tracking across swings is an
+explicit fast-follow (phase 2), not part of this build.
+
+## Research basis
+Metrics below are drawn from Titleist Performance Institute (TPI) biomechanics
+screening and standard video-analysis practice (e.g. GolfTec/DeepSwing-style
+tools): tempo ratio, X-Factor (shoulder-hip separation), hip sway, early
+extension, and head movement are all well-established indicators tied to
+driving distance and strike consistency, and are all computable from 2D body
+landmarks at the same four key frames this app already captures — no club or
+ball tracking, and no extra capture step required.
 
 ## Who / where
 Single user (the owner), used on a phone browser at the range or at home.
@@ -17,7 +27,19 @@ Single user (the owner), used on a phone browser at the range or at home.
 - Manual marking of four key frames: Address, Top of Backswing, Impact, Finish
 - Computed angles at each marked frame: spine tilt, shoulder rotation, hip
   rotation, lead-arm angle, knee flex
-- Save a session's key-frame snapshots + landmarks + angles to local storage
+- Computed power/fault metrics across the four key frames, each shown against
+  a pro benchmark range:
+  - **Tempo ratio** (backswing : downswing duration) — benchmark ≈ 3:1
+  - **X-Factor** (shoulder line vs. hip line separation at top of backswing)
+    — benchmark ≈ 40–50°
+  - **Hip sway** (lateral hip-midpoint drift, address → top of backswing)
+    — benchmark: minimal drift
+  - **Early extension** (hip/spine forward movement, address → impact,
+    relative to the address position) — benchmark: minimal movement
+  - **Head movement** (lateral/vertical head drift, address → impact)
+    — benchmark: minimal movement
+- Save a session's key-frame snapshots + landmarks + angles + metrics to
+  local storage
 - View a saved session's results (images + angles)
 
 **Out of scope (v1, planned for phase 2):**
@@ -73,11 +95,18 @@ IndexedDB (session + metrics storage)
 - **`AngleCalculator`** — pure functions taking landmark coordinates for a
   marked frame and returning: spine tilt, shoulder rotation, hip rotation,
   lead-arm angle, knee flex. No UI dependency — unit tested in isolation.
+- **`SwingMetrics`** — pure functions taking landmark coordinates (+
+  timestamps) across all four marked frames and returning: tempo ratio,
+  X-Factor, hip sway, early extension, head movement — each paired with its
+  pro benchmark range and a simple within-range/out-of-range flag. Same
+  testing approach as `AngleCalculator`: known landmark fixtures in, expected
+  values out.
 - **`SessionStore`** — wraps IndexedDB (`idb`). Saves a session as:
-  `{ date, keyFrames: { position, snapshotImage, landmarks, angles }[] }`.
+  `{ date, keyFrames: { position, snapshotImage, landmarks, angles }[], metrics }`.
   Does not store the source video.
 - **`SessionSummary`** — displays a completed session: key-frame snapshots
-  side by side with their angle values.
+  side by side with their angle values, plus a metrics panel showing each
+  swing metric against its benchmark range.
 - **`HistoryList`** — stub for phase 2: a plain list of saved sessions by
   date. Full trend charts are deferred, but the data model already supports
   them.
@@ -89,9 +118,10 @@ IndexedDB (session + metrics storage)
 3. User scrubs to a position and taps "mark as..." — captures that frame's
    landmarks and a snapshot image.
 4. Once all four key frames are marked, `AngleCalculator` computes angles for
-   each.
-5. User taps "Save session" → `SessionStore` persists the key-frame data to
-   IndexedDB. The source video is discarded after saving.
+   each, and `SwingMetrics` computes tempo ratio, X-Factor, hip sway, early
+   extension, and head movement across the set.
+5. User taps "Save session" → `SessionStore` persists the key-frame data and
+   metrics to IndexedDB. The source video is discarded after saving.
 6. `SessionSummary` renders the saved result. `HistoryList` will later read
    all saved sessions for phase-2 trends.
 
@@ -107,8 +137,9 @@ IndexedDB (session + metrics storage)
   the session.
 
 ## Testing
-- `AngleCalculator`: unit tests with known landmark coordinates asserting
-  expected angle outputs — the highest-value tests since this is pure logic.
+- `AngleCalculator` and `SwingMetrics`: unit tests with known landmark
+  coordinates (and timestamps, for tempo ratio) asserting expected outputs —
+  the highest-value tests since this is pure logic.
 - `SessionStore`: tests against `fake-indexeddb` for save/read round-trips.
 - Camera capture, MediaPipe integration, and canvas rendering: verified
   manually on-device (phone browser), since these are inherently visual and
