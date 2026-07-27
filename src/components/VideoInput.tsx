@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 interface VideoInputProps {
   onVideoReady: (url: string) => void
@@ -10,6 +10,15 @@ export function VideoInput({ onVideoReady }: VideoInputProps) {
   const mediaRecorderRef = useRef<MediaRecorder | null>(null)
   const chunksRef = useRef<Blob[]>([])
   const streamRef = useRef<MediaStream | null>(null)
+  const previewRef = useRef<HTMLVideoElement>(null)
+
+  // The preview element only exists while recording, so attach the live stream
+  // after that render rather than inside startRecording (where the ref is null).
+  useEffect(() => {
+    if (isRecording && previewRef.current && streamRef.current) {
+      previewRef.current.srcObject = streamRef.current
+    }
+  }, [isRecording])
 
   async function startRecording() {
     setPermissionError(null)
@@ -25,6 +34,7 @@ export function VideoInput({ onVideoReady }: VideoInputProps) {
         const blob = new Blob(chunksRef.current, { type: 'video/webm' })
         onVideoReady(URL.createObjectURL(blob))
         streamRef.current?.getTracks().forEach((track) => track.stop())
+        streamRef.current = null
       }
       mediaRecorderRef.current = recorder
       recorder.start()
@@ -48,6 +58,7 @@ export function VideoInput({ onVideoReady }: VideoInputProps) {
 
   return (
     <div className="video-input">
+      {isRecording && <video ref={previewRef} className="camera-preview" autoPlay muted playsInline />}
       {!isRecording ? (
         <button onClick={startRecording}>Record swing</button>
       ) : (

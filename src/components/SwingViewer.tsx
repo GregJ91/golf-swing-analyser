@@ -16,8 +16,12 @@ interface SwingViewerProps {
 export function SwingViewer({ videoUrl, onComplete }: SwingViewerProps) {
   const videoRef = useRef<HTMLVideoElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
+  // The latest detected pose lives in a ref so the ~60fps detection loop doesn't
+  // re-render the component on every frame; `hasPose` only flips on found/lost
+  // transitions (React skips re-renders when a primitive state value is unchanged).
+  const poseRef = useRef<PoseLandmarks | null>(null)
   const [modelReady, setModelReady] = useState(false)
-  const [currentPose, setCurrentPose] = useState<PoseLandmarks | null>(null)
+  const [hasPose, setHasPose] = useState(false)
   const [markedFrames, setMarkedFrames] = useState<KeyFrame[]>([])
 
   useEffect(() => {
@@ -51,7 +55,8 @@ export function SwingViewer({ videoUrl, onComplete }: SwingViewerProps) {
       } catch {
         pose = null
       }
-      setCurrentPose(pose)
+      poseRef.current = pose
+      setHasPose(Boolean(pose))
       const ctx = canvas!.getContext('2d')
       if (ctx) {
         ctx.clearRect(0, 0, canvas!.width, canvas!.height)
@@ -82,6 +87,7 @@ export function SwingViewer({ videoUrl, onComplete }: SwingViewerProps) {
   function markCurrentFrame(position: KeyFramePosition) {
     const video = videoRef.current
     const canvas = canvasRef.current
+    const currentPose = poseRef.current
     if (!video || !canvas || !currentPose) return
 
     const snapshotCanvas = document.createElement('canvas')
@@ -108,16 +114,11 @@ export function SwingViewer({ videoUrl, onComplete }: SwingViewerProps) {
       snapshotImage: snapshotCanvas.toDataURL('image/jpeg', 0.8),
     }
 
-    const updated = [...markedFrames.filter((frame) => frame.position !== position), keyFrame]
-    setMarkedFrames(updated)
-
-    if (KEY_FRAME_POSITIONS.every((pos) => updated.some((frame) => frame.position === pos))) {
-      onComplete(updated)
-    }
+    setMarkedFrames((frames) => [...frames.filter((frame) => frame.position !== position), keyFrame])
   }
 
-  const remainingPositions = KEY_FRAME_POSITIONS.filter(
-    (pos) => !markedFrames.some((frame) => frame.position === pos),
+  const allMarked = KEY_FRAME_POSITIONS.every((pos) =>
+    markedFrames.some((frame) => frame.position === pos),
   )
 
   return (
@@ -127,8 +128,7 @@ export function SwingViewer({ videoUrl, onComplete }: SwingViewerProps) {
           ref={videoRef}
           src={videoUrl}
           controls
-          width={360}
-          height={640}
+          playsInline
           onLoadedMetadata={() => {
             if (canvasRef.current && videoRef.current) {
               canvasRef.current.width = videoRef.current.videoWidth
@@ -139,14 +139,26 @@ export function SwingViewer({ videoUrl, onComplete }: SwingViewerProps) {
         <canvas ref={canvasRef} className="pose-overlay" />
       </div>
       {!modelReady && <p>Loading pose model...</p>}
-      {modelReady && !currentPose && <p className="warning-text">No pose detected in this frame.</p>}
+      {modelReady && !hasPose && <p className="warning-text">No pose detected in this frame.</p>}
       <div className="mark-buttons">
-        {remainingPositions.map((position) => (
-          <button key={position} onClick={() => markCurrentFrame(position)} disabled={!currentPose}>
-            Mark as {position}
-          </button>
-        ))}
+        {KEY_FRAME_POSITIONS.map((position) => {
+          const marked = markedFrames.find((frame) => frame.position === position)
+          return (
+            <button key={position} onClick={() => markCurrentFrame(position)} disabled={!hasPose}>
+              {marked
+                ? `${position} ✓ ${(marked.timestampMs / 1000).toFixed(2)}s (re-mark)`
+                : `Mark as ${position}`}
+            </button>
+          )
+        })}
       </div>
+      <button
+        className="finish-button"
+        disabled={!allMarked}
+        onClick={() => onComplete(markedFrames)}
+      >
+        Finish &amp; save
+      </button>
     </div>
   )
 }

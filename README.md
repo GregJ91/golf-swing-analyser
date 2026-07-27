@@ -1,32 +1,41 @@
-# React + TypeScript + Vite
+# Golf Swing Analyser
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+A phone-browser PWA for analysing golf swing mechanics from video. Everything
+runs on-device — no backend, no video ever leaves your phone.
 
-Currently, two official plugins are available:
+## What it does
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+1. Record a swing with your phone camera, or upload an existing clip.
+2. A pose skeleton (MediaPipe Pose Landmarker, running in-browser via WASM) is
+   overlaid on the video as you scrub.
+3. Mark the four key positions: address, top of backswing, impact, finish.
+4. Get measured body angles at each position plus swing metrics benchmarked
+   against pro ranges:
+   - **Tempo ratio** (backswing : downswing, benchmark ~3:1)
+   - **X-Factor** (shoulder/hip separation at the top, ~30-50°)
+   - **Hip sway** (lateral drift, address → top)
+   - **Early extension** (loss of spine angle, address → impact)
+   - **Head movement** (drift, address → impact)
+5. Sessions are saved locally (IndexedDB) — snapshots, landmarks, and metrics
+   only, never the video itself.
 
-## React Compiler
+## Running it
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the Oxlint configuration
-
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
-
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
+```bash
+npm install
+npm run dev       # local dev server
+npm test          # unit tests (angle math, metrics, storage)
+npm run build     # production build with PWA assets
 ```
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+Camera capture requires a secure context (HTTPS or localhost). To use the
+camera from a phone on your network, serve the production build over HTTPS.
+
+## Architecture
+
+- `src/swing/` — pure functions: geometry, angle calculation, swing metrics
+- `src/pose/` — MediaPipe Pose Landmarker wrapper
+- `src/storage/` — IndexedDB session store
+- `src/components/` — React UI (capture, viewer/marking, summary, history)
+
+Design spec and implementation plan live in `docs/superpowers/`.

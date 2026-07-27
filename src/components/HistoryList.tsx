@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { listSessions } from '../storage/SessionStore'
+import { deleteSession, listSessions } from '../storage/SessionStore'
 import type { Session } from '../types'
 
 export function HistoryList({ onSelect }: { onSelect: (session: Session) => void }) {
@@ -8,6 +8,12 @@ export function HistoryList({ onSelect }: { onSelect: (session: Session) => void
   useEffect(() => {
     listSessions().then(setSessions)
   }, [])
+
+  async function handleDelete(id: string) {
+    if (!window.confirm('Delete this session? This cannot be undone.')) return
+    await deleteSession(id)
+    setSessions(await listSessions())
+  }
 
   if (sessions.length === 0) {
     return <p>No saved sessions yet.</p>
@@ -18,6 +24,9 @@ export function HistoryList({ onSelect }: { onSelect: (session: Session) => void
       {sessions.map((session) => (
         <li key={session.id}>
           <button onClick={() => onSelect(session)}>{new Date(session.date).toLocaleString()}</button>
+          <button className="delete-button" onClick={() => handleDelete(session.id)}>
+            Delete
+          </button>
         </li>
       ))}
     </ul>

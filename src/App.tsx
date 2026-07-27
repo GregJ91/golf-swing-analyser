@@ -18,13 +18,29 @@ function App() {
   const [videoUrl, setVideoUrl] = useState<string | null>(null)
   const [activeSession, setActiveSession] = useState<Session | null>(null)
   const [saveError, setSaveError] = useState<string | null>(null)
+  const [analysisError, setAnalysisError] = useState<string | null>(null)
 
   async function handleAnalysisComplete(keyFrames: KeyFrame[]) {
+    // calculateSwingMetrics throws if the marked frames aren't in chronological
+    // order (address < top < impact). Stay on the analyze stage so the user can
+    // re-mark the offending frames rather than hitting a dead end.
+    let metrics: Session['metrics']
+    try {
+      metrics = calculateSwingMetrics(keyFrames)
+    } catch (error) {
+      setAnalysisError(
+        error instanceof Error
+          ? `${error.message}. Re-mark the frames so they appear in that order in the video, then finish again.`
+          : 'Could not compute swing metrics from these frames.',
+      )
+      return
+    }
+    setAnalysisError(null)
+
     const keyFramesWithAngles = keyFrames.map((frame) => ({
       ...frame,
       angles: calculateAngles(frame.landmarks),
     }))
-    const metrics = calculateSwingMetrics(keyFrames)
     const session: Session = {
       id: `${Date.now()}-${Math.random().toString(36).slice(2)}`,
       date: new Date().toISOString(),
@@ -44,9 +60,11 @@ function App() {
   }
 
   function startNewAnalysis() {
+    if (videoUrl) URL.revokeObjectURL(videoUrl)
     setVideoUrl(null)
     setActiveSession(null)
     setSaveError(null)
+    setAnalysisError(null)
     setStage('capture')
     setTab('new')
   }
@@ -74,7 +92,10 @@ function App() {
       )}
 
       {tab === 'new' && stage === 'analyze' && videoUrl && (
-        <SwingViewer videoUrl={videoUrl} onComplete={handleAnalysisComplete} />
+        <>
+          {analysisError && <p className="error-text">{analysisError}</p>}
+          <SwingViewer videoUrl={videoUrl} onComplete={handleAnalysisComplete} />
+        </>
       )}
 
       {tab === 'new' && stage === 'summary' && activeSession && (

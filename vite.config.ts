@@ -8,6 +8,7 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
+      includeAssets: ['favicon.svg', 'icon.svg'],
       manifest: {
         name: 'Golf Swing Analyser',
         short_name: 'SwingAnalyser',
@@ -15,7 +16,14 @@ export default defineConfig({
         display: 'standalone',
         background_color: '#ffffff',
         theme_color: '#1b5e20',
-        icons: [],
+        icons: [
+          {
+            src: 'icon.svg',
+            sizes: 'any',
+            type: 'image/svg+xml',
+            purpose: 'any',
+          },
+        ],
       },
       workbox: {
         // The MediaPipe WASM fileset and pose model are fetched cross-origin at runtime
