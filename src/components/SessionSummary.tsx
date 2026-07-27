@@ -1,7 +1,8 @@
 import type { MetricResult, Session, SwingMetricsResult } from '../types'
-import { adviceFor } from '../swing/advice'
+import { drillFor, prioritizeFaults } from '../swing/drills'
 import { isMetricValidForView } from '../swing/metricValidity'
 import { AnnotatedSnapshot } from './AnnotatedSnapshot'
+import { DrillCard } from './DrillCard'
 
 const METRIC_ROWS: Array<{ key: keyof SwingMetricsResult; label: string; unit: string }> = [
   { key: 'tempoRatio', label: 'Tempo ratio', unit: ':1' },
@@ -127,20 +128,22 @@ export function SessionSummary({ session }: { session: Session }) {
       </div>
 
       {(() => {
-        const tips = visibleRows
-          .map((row) => ({ label: row.label, tip: adviceFor(row.key, session.metrics[row.key]) }))
-          .filter((entry): entry is { label: string; tip: string } => entry.tip !== null)
-        if (tips.length === 0) return null
+        const faults = prioritizeFaults(
+          session.metrics,
+          visibleRows.map((row) => row.key),
+        )
+        const drills = faults
+          .map((fault) => drillFor(fault.key, fault.direction))
+          .filter((drill): drill is NonNullable<typeof drill> => drill !== null)
+        if (drills.length === 0) {
+          return <p className="view-note">Everything measured is inside the pro range — nice swing.</p>
+        }
         return (
           <section className="advice">
-            <h3>What to work on</h3>
-            <ul>
-              {tips.map(({ label, tip }) => (
-                <li key={label}>
-                  <strong>{label}:</strong> {tip}
-                </li>
-              ))}
-            </ul>
+            <h2>What to work on</h2>
+            {drills.map((drill, index) => (
+              <DrillCard key={drill.name} drill={drill} focus={index === 0} />
+            ))}
           </section>
         )
       })()}

@@ -5,6 +5,7 @@ import { SwingViewer } from './components/SwingViewer'
 import { SessionSummary } from './components/SessionSummary'
 import { HistoryList } from './components/HistoryList'
 import { ComparisonView } from './components/ComparisonView'
+import { DrillsTab } from './components/DrillsTab'
 import { TrendCharts } from './components/TrendCharts'
 import { listSessions, saveSession } from './storage/SessionStore'
 import { parseBackup, serializeSessions } from './storage/backup'
@@ -12,7 +13,7 @@ import { calculateAngles } from './swing/AngleCalculator'
 import { calculateSwingMetrics } from './swing/SwingMetrics'
 import type { KeyFrame, Session, SwingView } from './types'
 
-type Tab = 'new' | 'history'
+type Tab = 'new' | 'history' | 'drills'
 type Stage = 'capture' | 'analyze' | 'summary'
 
 function App() {
@@ -126,6 +127,9 @@ function App() {
         <button className={tab === 'history' ? 'active' : ''} onClick={() => setTab('history')}>
           History
         </button>
+        <button className={tab === 'drills' ? 'active' : ''} onClick={() => setTab('drills')}>
+          Drills
+        </button>
       </nav>
 
       {tab === 'new' && stage === 'capture' && (
@@ -148,6 +152,15 @@ function App() {
               setStage('analyze')
             }}
           />
+          <details className="film-tips">
+            <summary>How to film for best results</summary>
+            <ul>
+              <li>Camera 2–3 m away, about waist height, whole body in frame.</li>
+              <li>Face-on: camera pointing at your chest. Down-the-line: behind your hands, pointing at the target.</li>
+              <li>Good light and a plain background help pose detection.</li>
+              <li>Keep the phone still — prop it up rather than asking someone to hold it.</li>
+            </ul>
+          </details>
         </>
       )}
 
@@ -210,6 +223,8 @@ function App() {
           <SessionSummary session={activeSession} />
         </>
       )}
+
+      {tab === 'drills' && <DrillsTab />}
     </div>
   )
 }
