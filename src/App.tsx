@@ -1,10 +1,11 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import './App.css'
 import { VideoInput } from './components/VideoInput'
 import { SwingViewer } from './components/SwingViewer'
 import { SessionSummary } from './components/SessionSummary'
 import { HistoryList } from './components/HistoryList'
-import { saveSession } from './storage/SessionStore'
+import { TrendCharts } from './components/TrendCharts'
+import { listSessions, saveSession } from './storage/SessionStore'
 import { calculateAngles } from './swing/AngleCalculator'
 import { calculateSwingMetrics } from './swing/SwingMetrics'
 import type { KeyFrame, Session } from './types'
@@ -19,6 +20,13 @@ function App() {
   const [activeSession, setActiveSession] = useState<Session | null>(null)
   const [saveError, setSaveError] = useState<string | null>(null)
   const [analysisError, setAnalysisError] = useState<string | null>(null)
+  const [sessions, setSessions] = useState<Session[]>([])
+
+  useEffect(() => {
+    if (tab === 'history') {
+      listSessions().then(setSessions)
+    }
+  }, [tab])
 
   async function handleAnalysisComplete(keyFrames: KeyFrame[]) {
     // calculateSwingMetrics throws if the marked frames aren't in chronological
@@ -105,7 +113,16 @@ function App() {
         </>
       )}
 
-      {tab === 'history' && !activeSession && <HistoryList onSelect={setActiveSession} />}
+      {tab === 'history' && !activeSession && (
+        <>
+          <TrendCharts sessions={sessions} />
+          <HistoryList
+            sessions={sessions}
+            onSelect={setActiveSession}
+            onDeleted={() => listSessions().then(setSessions)}
+          />
+        </>
+      )}
       {tab === 'history' && activeSession && (
         <>
           <button onClick={() => setActiveSession(null)}>Back to list</button>

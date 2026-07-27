@@ -1,18 +1,17 @@
-import { useEffect, useState } from 'react'
-import { deleteSession, listSessions } from '../storage/SessionStore'
+import { deleteSession } from '../storage/SessionStore'
 import type { Session } from '../types'
 
-export function HistoryList({ onSelect }: { onSelect: (session: Session) => void }) {
-  const [sessions, setSessions] = useState<Session[]>([])
+interface HistoryListProps {
+  sessions: Session[]
+  onSelect: (session: Session) => void
+  onDeleted: () => void
+}
 
-  useEffect(() => {
-    listSessions().then(setSessions)
-  }, [])
-
+export function HistoryList({ sessions, onSelect, onDeleted }: HistoryListProps) {
   async function handleDelete(id: string) {
     if (!window.confirm('Delete this session? This cannot be undone.')) return
     await deleteSession(id)
-    setSessions(await listSessions())
+    onDeleted()
   }
 
   if (sessions.length === 0) {

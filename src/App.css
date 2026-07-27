@@ -67,6 +67,42 @@
   color: #b00020;
 }
 
+.trend-charts {
+  margin-bottom: 1.5rem;
+}
+
+.trend-chart {
+  margin: 0 0 1rem;
+}
+
+.trend-chart figcaption {
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+}
+
+.trend-benchmark-note {
+  font-weight: normal;
+  color: #666;
+}
+
+.trend-chart svg {
+  display: block;
+  width: 100%;
+  max-width: 360px;
+  height: auto;
+}
+
+.trend-value-label {
+  font-size: 11px;
+  fill: #333;
+}
+
+.trend-axis-label {
+  font-size: 10px;
+  fill: #888;
+}
+
 .frame-step-buttons {
   display: flex;
   gap: 0.5rem;
