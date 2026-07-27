@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { LANDMARK } from '../pose/landmarkIndices'
 import { POSE_CONNECTIONS } from '../pose/poseConnections'
 import { midpoint } from '../swing/geometry'
@@ -19,12 +19,17 @@ interface AnnotatedSnapshotProps {
   ghostLandmarks?: PoseLandmarks
 }
 
+function isNormalized(landmarks: PoseLandmarks): boolean {
+  if (landmarks.length === 0) return false
+  const maxCoord = Math.max(...landmarks.map((p) => Math.max(p.x, p.y)))
+  return maxCoord <= 1.5
+}
+
 // Landmarks are stored in source-video pixel coordinates, which match the
 // snapshot's natural dimensions. (Very early sessions stored normalized 0-1
 // coordinates — detect and upscale those so they still render.)
 function toImageSpace(landmarks: PoseLandmarks, width: number, height: number): PoseLandmarks {
-  const maxCoord = Math.max(...landmarks.map((p) => Math.max(p.x, p.y)))
-  if (maxCoord <= 1.5) {
+  if (isNormalized(landmarks)) {
     return landmarks.map((p) => ({ ...p, x: p.x * width, y: p.y * height }))
   }
   return landmarks
@@ -41,13 +46,32 @@ function Skeleton({ landmarks, stroke, width, dashed }: { landmarks: PoseLandmar
 }
 
 export function AnnotatedSnapshot({ snapshotImage, landmarks, alt, angles, ghostLandmarks }: AnnotatedSnapshotProps) {
+  const imgRef = useRef<HTMLImageElement>(null)
   const [dims, setDims] = useState<{ w: number; h: number } | null>(null)
 
+  // A cached image can finish loading before React attaches the onLoad
+  // listener, in which case dims would never be set and the overlay would
+  // silently not render — check for an already-complete image after mount.
+  useEffect(() => {
+    const img = imgRef.current
+    if (img && img.complete && img.naturalWidth > 0) {
+      setDims({ w: img.naturalWidth, h: img.naturalHeight })
+    }
+  }, [snapshotImage])
+
   const scaled = dims ? toImageSpace(landmarks, dims.w, dims.h) : null
+
+  // A pixel-space ghost needs no denormalizing — the alignment's uniform
+  // scale absorbs any camera-distance difference. A legacy normalized ghost
+  // would need ITS OWN video's dimensions (which we don't have) to
+  // denormalize without warping, so degrade to no ghost rather than a
+  // distorted one.
+  const alignableGhost = ghostLandmarks && !isNormalized(ghostLandmarks) ? ghostLandmarks : undefined
 
   return (
     <div className="annotated-snapshot">
       <img
+        ref={imgRef}
         src={snapshotImage}
         alt={alt}
         onLoad={(event) => {
@@ -57,10 +81,10 @@ export function AnnotatedSnapshot({ snapshotImage, landmarks, alt, angles, ghost
       />
       {dims && scaled && (
         <svg viewBox={`0 0 ${dims.w} ${dims.h}`} aria-hidden="true">
-          {ghostLandmarks && (
+          {alignableGhost && (
             <>
               <Skeleton
-                landmarks={alignGhostLandmarks(toImageSpace(ghostLandmarks, dims.w, dims.h), scaled)}
+                landmarks={alignGhostLandmarks(alignableGhost, scaled)}
                 stroke={GHOST}
                 width={dims.w * 0.008}
                 dashed
@@ -68,7 +92,7 @@ export function AnnotatedSnapshot({ snapshotImage, landmarks, alt, angles, ghost
               <Skeleton landmarks={scaled} stroke={TRACER} width={dims.w * 0.008} />
             </>
           )}
-          {angles && !ghostLandmarks && <AngleAnnotations landmarks={scaled} angles={angles} w={dims.w} />}
+          {angles && !alignableGhost && <AngleAnnotations landmarks={scaled} angles={angles} w={dims.w} />}
         </svg>
       )}
     </div>
