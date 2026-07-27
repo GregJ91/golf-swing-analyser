@@ -31,6 +31,7 @@ export function SwingViewer({ videoUrl, onComplete }: SwingViewerProps) {
 
     let rafId: number
     let lastProcessedTime: number | null = null
+    let detectionTimestamp = 0
     function renderFrame() {
       if (video!.paused && lastProcessedTime === video!.currentTime) {
         rafId = requestAnimationFrame(renderFrame)
@@ -38,7 +39,18 @@ export function SwingViewer({ videoUrl, onComplete }: SwingViewerProps) {
       }
       lastProcessedTime = video!.currentTime
 
-      const pose = detectPose(video!, video!.currentTime * 1000)
+      // MediaPipe's VIDEO running mode requires a strictly monotonically increasing
+      // timestamp per call. video.currentTime jumps backward whenever the user scrubs,
+      // which would throw and (since this call happens before the next rAF is scheduled)
+      // permanently kill the render loop. Use an independent monotonic counter instead —
+      // MediaPipe only needs *an* increasing value, not a real one.
+      detectionTimestamp += 1
+      let pose: PoseLandmarks | null
+      try {
+        pose = detectPose(video!, detectionTimestamp)
+      } catch {
+        pose = null
+      }
       setCurrentPose(pose)
       const ctx = canvas!.getContext('2d')
       if (ctx) {
@@ -78,10 +90,21 @@ export function SwingViewer({ videoUrl, onComplete }: SwingViewerProps) {
     const ctx = snapshotCanvas.getContext('2d')
     ctx?.drawImage(video, 0, 0, canvas.width, canvas.height)
 
+    // MediaPipe landmarks are normalized independently by video width (x) and height (y).
+    // On non-square (e.g. portrait phone) video these two axes have different physical pixel
+    // scales, which distorts any angle math mixing both axes. Convert to true pixel
+    // coordinates here (both axes share the same physical scale) before storing, so
+    // downstream angle/metric calculations aren't skewed by aspect ratio.
+    const scaledLandmarks: PoseLandmarks = currentPose.map((point) => ({
+      ...point,
+      x: point.x * canvas.width,
+      y: point.y * canvas.height,
+    }))
+
     const keyFrame: KeyFrame = {
       position,
       timestampMs: video.currentTime * 1000,
-      landmarks: currentPose,
+      landmarks: scaledLandmarks,
       snapshotImage: snapshotCanvas.toDataURL('image/jpeg', 0.8),
     }
 
