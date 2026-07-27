@@ -3,7 +3,7 @@ import { adviceFor } from '../swing/advice'
 import { isMetricValidForView } from '../swing/metricValidity'
 
 const METRIC_ROWS: Array<{ key: keyof SwingMetricsResult; label: string; unit: string }> = [
-  { key: 'tempoRatio', label: 'Tempo ratio (backswing:downswing)', unit: ':1' },
+  { key: 'tempoRatio', label: 'Tempo ratio', unit: ':1' },
   { key: 'xFactorDeg', label: 'X-Factor', unit: '°' },
   { key: 'hipSwayNormalized', label: 'Hip sway', unit: '' },
   { key: 'earlyExtensionDeg', label: 'Early extension', unit: '°' },
@@ -12,20 +12,48 @@ const METRIC_ROWS: Array<{ key: keyof SwingMetricsResult; label: string; unit: s
 
 const VIEW_LABELS = { 'face-on': 'Face-on', 'down-the-line': 'Down-the-line' } as const
 
-function MetricRow({ label, metric, unit }: { label: string; metric: MetricResult; unit: string }) {
+function formatValue(value: number, unit: string): string {
+  const digits = Math.abs(value) < 1 ? 2 : 1
+  return `${value.toFixed(digits)}${unit}`
+}
+
+// The signature readout: the pro benchmark range drawn as a zone on a band,
+// with a dot marking where this swing landed.
+function MetricGauge({ label, metric, unit }: { label: string; metric: MetricResult; unit: string }) {
+  const span = metric.benchmarkMax - metric.benchmarkMin || 1
+  const lo = Math.min(metric.benchmarkMin - span * 0.5, metric.value)
+  const hi = Math.max(metric.benchmarkMax + span * 0.5, metric.value)
+  const pct = (v: number) => ((v - lo) / (hi - lo || 1)) * 100
+
+  const status = metric.inRange ? 'in range' : metric.value < metric.benchmarkMin ? 'below range' : 'above range'
+
   return (
-    <tr className={metric.inRange ? 'metric-ok' : 'metric-warning'}>
-      <td>{label}</td>
-      <td>
-        {metric.value.toFixed(1)}
-        {unit}
-      </td>
-      <td>
-        {metric.benchmarkMin}-{metric.benchmarkMax}
-        {unit}
-      </td>
-      <td>{metric.inRange ? 'OK' : 'Check this'}</td>
-    </tr>
+    <div className="gauge-row">
+      <div className="gauge-head">
+        <span className="gauge-label">{label}</span>
+        <span className={metric.inRange ? 'gauge-value' : 'gauge-value out'}>
+          {formatValue(metric.value, unit)}
+        </span>
+      </div>
+      <div className="gauge-band" role="img" aria-label={`${label}: ${formatValue(metric.value, unit)}, ${status}`}>
+        <div className="gauge-track" />
+        <div
+          className="gauge-zone"
+          style={{
+            left: `${pct(metric.benchmarkMin)}%`,
+            width: `${pct(metric.benchmarkMax) - pct(metric.benchmarkMin)}%`,
+          }}
+        />
+        <div
+          className={metric.inRange ? 'gauge-dot' : 'gauge-dot out'}
+          style={{ left: `${pct(metric.value)}%` }}
+        />
+      </div>
+      <p className="gauge-range-text">
+        target {metric.benchmarkMin}–{metric.benchmarkMax}
+        {unit} · {status}
+      </p>
+    </div>
   )
 }
 
@@ -52,33 +80,45 @@ export function SessionSummary({ session }: { session: Session }) {
               </p>
             )}
             <ul>
-              <li>Spine tilt: {frame.angles.spineTiltDeg.toFixed(1)}°</li>
-              <li>Shoulder line: {frame.angles.shoulderLineAngleDeg.toFixed(1)}°</li>
-              <li>Hip line: {frame.angles.hipLineAngleDeg.toFixed(1)}°</li>
-              <li>Left arm: {frame.angles.leftArmAngleDeg.toFixed(1)}°</li>
-              <li>Right arm: {frame.angles.rightArmAngleDeg.toFixed(1)}°</li>
-              <li>Left knee flex: {frame.angles.leftKneeFlexDeg.toFixed(1)}°</li>
-              <li>Right knee flex: {frame.angles.rightKneeFlexDeg.toFixed(1)}°</li>
+              <li>
+                <span>Spine tilt</span>
+                <span>{frame.angles.spineTiltDeg.toFixed(1)}°</span>
+              </li>
+              <li>
+                <span>Shoulder line</span>
+                <span>{frame.angles.shoulderLineAngleDeg.toFixed(1)}°</span>
+              </li>
+              <li>
+                <span>Hip line</span>
+                <span>{frame.angles.hipLineAngleDeg.toFixed(1)}°</span>
+              </li>
+              <li>
+                <span>Left arm</span>
+                <span>{frame.angles.leftArmAngleDeg.toFixed(1)}°</span>
+              </li>
+              <li>
+                <span>Right arm</span>
+                <span>{frame.angles.rightArmAngleDeg.toFixed(1)}°</span>
+              </li>
+              <li>
+                <span>Left knee</span>
+                <span>{frame.angles.leftKneeFlexDeg.toFixed(1)}°</span>
+              </li>
+              <li>
+                <span>Right knee</span>
+                <span>{frame.angles.rightKneeFlexDeg.toFixed(1)}°</span>
+              </li>
             </ul>
           </div>
         ))}
       </div>
 
-      <table className="metrics-table">
-        <thead>
-          <tr>
-            <th>Metric</th>
-            <th>Value</th>
-            <th>Pro benchmark</th>
-            <th>Status</th>
-          </tr>
-        </thead>
-        <tbody>
-          {visibleRows.map((row) => (
-            <MetricRow key={row.key} label={row.label} metric={session.metrics[row.key]} unit={row.unit} />
-          ))}
-        </tbody>
-      </table>
+      <h2>Metrics</h2>
+      <div className="gauge-list">
+        {visibleRows.map((row) => (
+          <MetricGauge key={row.key} label={row.label} metric={session.metrics[row.key]} unit={row.unit} />
+        ))}
+      </div>
 
       {(() => {
         const tips = visibleRows

@@ -1,45 +1,160 @@
 .app {
   max-width: 480px;
   margin: 0 auto;
-  padding: 1rem;
-  font-family: system-ui, sans-serif;
+  padding: 1rem 1rem 3rem;
 }
+
+/* ---- Wordmark & headers -------------------------------------------------- */
+
+.app > h1 {
+  margin: 0.25rem 0 1rem;
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--chalk);
+}
+
+.app > h1::after {
+  content: 'ON-DEVICE SWING ANALYSIS';
+  display: block;
+  margin-top: 2px;
+  font-size: 0.6rem;
+  font-weight: 500;
+  letter-spacing: 0.22em;
+  color: var(--chalk-faint);
+}
+
+h2 {
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--sand);
+  margin: 1.5rem 0 0.75rem;
+}
+
+h3 {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--chalk-dim);
+  margin: 1rem 0 0.5rem;
+}
+
+/* ---- Buttons ------------------------------------------------------------- */
+
+button {
+  font-family: var(--font-display);
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--chalk);
+  background: var(--pine-800);
+  border: 1px solid var(--pine-700);
+  border-radius: var(--radius-small);
+  padding: 0.5rem 0.9rem;
+  cursor: pointer;
+  transition: background 120ms ease, border-color 120ms ease;
+}
+
+button:hover:not(:disabled) {
+  background: var(--pine-700);
+}
+
+button:focus-visible {
+  outline: 2px solid var(--sand);
+  outline-offset: 2px;
+}
+
+button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+/* ---- Tabs ---------------------------------------------------------------- */
 
 .tabs {
   display: flex;
-  gap: 0.5rem;
-  margin-bottom: 1rem;
+  gap: 0;
+  margin-bottom: 1.25rem;
+  border: 1px solid var(--pine-700);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.tabs button {
+  flex: 1;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  padding: 0.6rem 0;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  color: var(--chalk-dim);
 }
 
 .tabs button.active {
-  font-weight: bold;
-  text-decoration: underline;
+  background: var(--pine-800);
+  color: var(--sand-bright);
 }
+
+/* ---- Capture stage ------------------------------------------------------- */
 
 .view-picker {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  margin-bottom: 0.75rem;
-  font-size: 0.9rem;
+  margin-bottom: 1rem;
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--chalk-dim);
 }
 
 .view-picker button.active {
-  font-weight: bold;
-  outline: 2px solid #2e7d32;
+  border-color: var(--sand);
+  color: var(--sand-bright);
 }
 
-.view-note {
-  color: #666;
-  font-size: 0.9rem;
+.video-input {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  align-items: flex-start;
 }
 
-/* The video keeps its intrinsic aspect ratio (height: auto) so its rendered box
-   always matches the frame content with no letterboxing — the absolutely
-   positioned canvas then lines up with the video pixels on any aspect ratio. */
+.camera-preview {
+  display: block;
+  width: 100%;
+  max-width: 360px;
+  border-radius: var(--radius);
+  border: 1px solid var(--pine-700);
+}
+
+.upload-label {
+  font-size: 0.85rem;
+  color: var(--sand);
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.upload-label input {
+  display: none;
+}
+
+/* ---- Viewer -------------------------------------------------------------- */
+
 .video-canvas-wrapper {
   position: relative;
   max-width: 360px;
+  border-radius: var(--radius);
+  overflow: hidden;
+  border: 1px solid var(--pine-700);
+  background: #000;
 }
 
 .video-canvas-wrapper video {
@@ -57,47 +172,295 @@
   height: 100%;
 }
 
-.camera-preview {
-  display: block;
-  width: 100%;
+.frame-step-buttons {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.mark-buttons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
   max-width: 360px;
-  margin-bottom: 0.5rem;
+}
+
+.mark-buttons button {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  text-align: left;
 }
 
 .finish-button {
-  margin-top: 0.75rem;
-  padding: 0.5rem 1.5rem;
-  font-weight: bold;
+  display: block;
+  width: 100%;
+  max-width: 360px;
+  margin-top: 1rem;
+  padding: 0.7rem;
+  background: var(--sand);
+  border-color: var(--sand);
+  color: var(--pine-950);
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
 }
 
-.history-list {
+.finish-button:hover:not(:disabled) {
+  background: var(--sand-bright);
+}
+
+/* ---- Messages ------------------------------------------------------------ */
+
+.error-text {
+  color: var(--flag);
+  font-size: 0.85rem;
+}
+
+.warning-text {
+  color: var(--sand);
+  font-size: 0.8rem;
+}
+
+.view-note {
+  color: var(--chalk-dim);
+  font-size: 0.8rem;
+}
+
+/* ---- Summary: key frames ------------------------------------------------- */
+
+.key-frames {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+
+.key-frame-card {
+  background: var(--pine-900);
+  border: 1px solid var(--pine-700);
+  border-radius: var(--radius);
+  padding: 0.6rem;
+}
+
+.key-frame-card h3 {
+  margin: 0 0 0.4rem;
+}
+
+.key-frame-card img {
+  width: 100%;
+  height: auto;
+  border-radius: var(--radius-small);
+}
+
+.key-frame-card ul {
   list-style: none;
+  margin: 0.5rem 0 0;
   padding: 0;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  color: var(--chalk-dim);
 }
 
-.history-list li {
+.key-frame-card li {
   display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.1rem 0;
+}
+
+/* ---- Signature: metric gauges -------------------------------------------- */
+
+.gauge-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+  margin-top: 0.5rem;
+}
+
+.gauge-row {
+  background: var(--pine-900);
+  border: 1px solid var(--pine-700);
+  border-radius: var(--radius);
+  padding: 0.7rem 0.85rem 0.85rem;
+}
+
+.gauge-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
   gap: 0.5rem;
   margin-bottom: 0.5rem;
 }
 
+.gauge-label {
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--chalk-dim);
+}
+
+.gauge-value {
+  font-family: var(--font-mono);
+  font-size: 1.35rem;
+  font-weight: 600;
+  color: var(--chalk);
+}
+
+.gauge-value.out {
+  color: var(--flag);
+}
+
+.gauge-band {
+  position: relative;
+  width: 100%;
+  height: 14px;
+}
+
+.gauge-track {
+  position: absolute;
+  top: 6px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  border-radius: 1px;
+  background: var(--pine-700);
+}
+
+.gauge-zone {
+  position: absolute;
+  top: 3px;
+  height: 8px;
+  border-radius: 4px;
+  background: var(--tracer-dim);
+  border: 1px solid rgba(107, 168, 44, 0.45);
+}
+
+.gauge-dot {
+  position: absolute;
+  top: 2px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  transform: translateX(-50%);
+  background: var(--tracer);
+  border: 2px solid var(--pine-900);
+}
+
+.gauge-dot.out {
+  background: var(--flag);
+}
+
+.gauge-row {
+  animation: gauge-rise 300ms ease-out both;
+}
+
+.gauge-row:nth-child(2) {
+  animation-delay: 50ms;
+}
+.gauge-row:nth-child(3) {
+  animation-delay: 100ms;
+}
+.gauge-row:nth-child(4) {
+  animation-delay: 150ms;
+}
+.gauge-row:nth-child(5) {
+  animation-delay: 200ms;
+}
+
+@keyframes gauge-rise {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.gauge-range-text {
+  margin-top: 0.35rem;
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  color: var(--chalk-faint);
+}
+
+/* ---- Advice -------------------------------------------------------------- */
+
+.advice {
+  margin-top: 1.25rem;
+  border-left: 3px solid var(--sand);
+  padding-left: 0.9rem;
+}
+
+.advice ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.advice li {
+  margin-bottom: 0.6rem;
+  font-size: 0.85rem;
+  color: var(--chalk-dim);
+}
+
+.advice strong {
+  color: var(--chalk);
+}
+
+/* ---- History ------------------------------------------------------------- */
+
+.history-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.history-list li {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.4rem 0;
+  border-bottom: 1px solid var(--pine-800);
+}
+
+.compare-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.7rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--chalk-dim);
+}
+
+.compare-checkbox input {
+  accent-color: var(--sand);
+}
+
 .delete-button {
-  color: #b00020;
+  margin-left: auto;
+  color: var(--flag);
+  background: transparent;
+  border-color: transparent;
+  font-size: 0.75rem;
+}
+
+.delete-button:hover:not(:disabled) {
+  background: var(--pine-900);
+  border-color: var(--flag);
 }
 
 .backup-controls {
   display: flex;
   align-items: center;
   gap: 1rem;
-  margin-top: 1rem;
+  margin-top: 1.25rem;
 }
 
-.compare-checkbox {
-  display: flex;
-  align-items: center;
-  gap: 0.25rem;
-  font-size: 0.85rem;
-}
+/* ---- Comparison ---------------------------------------------------------- */
 
 .comparison-pair {
   display: flex;
@@ -113,39 +476,79 @@
 .comparison-pair img {
   width: 100%;
   height: auto;
+  border-radius: var(--radius-small);
 }
 
 .comparison-pair figcaption {
-  font-size: 0.8rem;
-  color: #666;
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  color: var(--chalk-faint);
   text-align: center;
+  margin-top: 0.25rem;
 }
 
-.advice ul {
-  padding-left: 1.2rem;
+/* ---- Tables (comparison deltas) ------------------------------------------ */
+
+.metrics-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1rem;
+  font-size: 0.8rem;
 }
 
-.advice li {
-  margin-bottom: 0.5rem;
+.metrics-table td,
+.metrics-table th {
+  border-bottom: 1px solid var(--pine-800);
+  padding: 0.45rem 0.4rem;
+  text-align: left;
 }
+
+.metrics-table th {
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--chalk-faint);
+}
+
+.metrics-table td {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+}
+
+.metric-ok {
+  color: var(--chalk);
+}
+
+.metric-warning {
+  color: var(--flag);
+  background: transparent;
+}
+
+/* ---- Trend charts -------------------------------------------------------- */
 
 .trend-charts {
   margin-bottom: 1.5rem;
 }
 
 .trend-chart {
-  margin: 0 0 1rem;
+  margin: 0 0 1.1rem;
 }
 
 .trend-chart figcaption {
-  font-size: 0.9rem;
+  font-size: 0.7rem;
   font-weight: 600;
-  margin-bottom: 0.25rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--chalk-dim);
+  margin-bottom: 0.3rem;
 }
 
 .trend-benchmark-note {
-  font-weight: normal;
-  color: #666;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: none;
+  color: var(--chalk-faint);
 }
 
 .trend-chart svg {
@@ -156,54 +559,13 @@
 }
 
 .trend-value-label {
+  font-family: var(--font-mono);
   font-size: 11px;
-  fill: #333;
+  fill: var(--chalk);
 }
 
 .trend-axis-label {
+  font-family: var(--font-mono);
   font-size: 10px;
-  fill: #888;
-}
-
-.frame-step-buttons {
-  display: flex;
-  gap: 0.5rem;
-  margin-top: 0.5rem;
-}
-
-.mark-buttons {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  margin-top: 0.5rem;
-}
-
-.error-text {
-  color: #b00020;
-}
-
-.warning-text {
-  color: #a15c00;
-}
-
-.key-frames {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1rem;
-}
-
-.metrics-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 1rem;
-}
-
-.metrics-table td, .metrics-table th {
-  border: 1px solid #ccc;
-  padding: 0.4rem;
-  text-align: left;
-}
-
-.metric-warning {
-  background: #fff3cd;
+  fill: var(--chalk-faint);
 }

@@ -4,13 +4,52 @@
   box-sizing: border-box;
 }
 
+:root {
+  /* Range-at-dusk palette. Tracer green is reserved for data (pose, charts,
+     in-range marks); sand is the interactive accent; flag red means
+     out-of-range or destructive. */
+  --pine-950: #0f1511;
+  --pine-900: #16201a;
+  --pine-800: #1f2d24;
+  --pine-700: #2c3f32;
+  --chalk: #edefe8;
+  --chalk-dim: #9ba69b;
+  --chalk-faint: #5f6b60;
+  --sand: #d9c7a0;
+  --sand-bright: #ecdcb8;
+  --flag: #e4572e;
+  --tracer: #6ba82c;
+  --tracer-video: #a3e635;
+  --tracer-dim: rgba(107, 168, 44, 0.18);
+
+  --font-display: 'Archivo Variable', system-ui, sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
+
+  --radius: 10px;
+  --radius-small: 6px;
+}
+
 html {
-  color-scheme: light dark;
+  color-scheme: dark;
 }
 
 body {
   margin: 0;
-  font-family: system-ui, 'Segoe UI', Roboto, sans-serif;
+  background: var(--pine-950);
+  color: var(--chalk);
+  font-family: var(--font-display);
+  font-size: 15px;
+  line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

@@ -103,8 +103,10 @@ export function SwingViewer({ videoUrl, onComplete }: SwingViewerProps) {
       if (ctx) {
         ctx.clearRect(0, 0, canvas!.width, canvas!.height)
         if (pose) {
-          ctx.fillStyle = '#00ff00'
-          ctx.strokeStyle = '#00ff00'
+          // Brighter than the surface tracer green — this draws over video
+          // content, not the app surface.
+          ctx.fillStyle = '#a3e635'
+          ctx.strokeStyle = '#a3e635'
           for (const [a, b] of POSE_CONNECTIONS) {
             const pa = pose[a]
             const pb = pose[b]

@@ -5,8 +5,10 @@ import type { Session } from '../types'
 const CHART_W = 300
 const CHART_H = 110
 const PAD = { top: 10, right: 44, bottom: 18, left: 8 }
-const LINE_COLOR = '#2e7d32' // validated: >=3:1 contrast on white, in-band lightness/chroma
-const BAND_COLOR = 'rgba(46, 125, 50, 0.10)'
+const LINE_COLOR = '#6ba82c' // tracer green — validated in-band and >=3:1 on the dark surface
+const BAND_COLOR = 'rgba(107, 168, 44, 0.18)'
+const BASELINE_COLOR = '#2c3f32'
+const DOT_RING_COLOR = '#16201a'
 
 function formatValue(value: number, unit: string): string {
   const digits = Math.abs(value) < 1 ? 2 : 1
@@ -59,12 +61,12 @@ function MetricChart({ series }: { series: TrendSeries }) {
           x2={PAD.left + plotW}
           y1={PAD.top + plotH}
           y2={PAD.top + plotH}
-          stroke="#d5d5d0"
+          stroke={BASELINE_COLOR}
           strokeWidth="1"
         />
         <path d={path} fill="none" stroke={LINE_COLOR} strokeWidth="2" strokeLinejoin="round" />
         {points.map((p, i) => (
-          <circle key={p.date} cx={x(i)} cy={y(p.value)} r="4" fill={LINE_COLOR} stroke="#ffffff" strokeWidth="2">
+          <circle key={p.date} cx={x(i)} cy={y(p.value)} r="4" fill={LINE_COLOR} stroke={DOT_RING_COLOR} strokeWidth="2">
             <title>{`${shortDate(p.date)}: ${formatValue(p.value, unit)}`}</title>
           </circle>
         ))}

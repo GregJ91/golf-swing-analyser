@@ -17,8 +17,8 @@ export default defineConfig({
         start_url: '/golf-swing-analyser/',
         scope: '/golf-swing-analyser/',
         display: 'standalone',
-        background_color: '#ffffff',
-        theme_color: '#1b5e20',
+        background_color: '#0f1511',
+        theme_color: '#0f1511',
         icons: [
           {
             src: 'icon.svg',
