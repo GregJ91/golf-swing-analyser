@@ -17,6 +17,43 @@ export default defineConfig({
         theme_color: '#1b5e20',
         icons: [],
       },
+      workbox: {
+        // The MediaPipe WASM fileset and pose model are fetched cross-origin at runtime
+        // (see src/pose/PoseProcessor.ts) and are not covered by the default same-origin
+        // precache. Without caching these, the app cannot actually run offline after first
+        // load, since pose detection can never initialize. Both URLs are pinned to an exact,
+        // immutable version, so CacheFirst with no expiration-based eviction is safe.
+        runtimeCaching: [
+          {
+            urlPattern: /^https:\/\/cdn\.jsdelivr\.net\/npm\/@mediapipe\/tasks-vision@0\.10\.14\/wasm\/.*/,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'mediapipe-wasm',
+              expiration: {
+                maxEntries: 30,
+                maxAgeSeconds: 60 * 60 * 24 * 365,
+              },
+              cacheableResponse: {
+                statuses: [0, 200],
+              },
+            },
+          },
+          {
+            urlPattern: /^https:\/\/storage\.googleapis\.com\/mediapipe-models\/.*/,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'mediapipe-model',
+              expiration: {
+                maxEntries: 10,
+                maxAgeSeconds: 60 * 60 * 24 * 365,
+              },
+              cacheableResponse: {
+                statuses: [0, 200],
+              },
+            },
+          },
+        ],
+      },
     }),
   ],
 })
