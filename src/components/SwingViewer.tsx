@@ -30,7 +30,14 @@ export function SwingViewer({ videoUrl, onComplete }: SwingViewerProps) {
     if (!video || !canvas || !modelReady) return
 
     let rafId: number
+    let lastProcessedTime: number | null = null
     function renderFrame() {
+      if (video!.paused && lastProcessedTime === video!.currentTime) {
+        rafId = requestAnimationFrame(renderFrame)
+        return
+      }
+      lastProcessedTime = video!.currentTime
+
       const pose = detectPose(video!, video!.currentTime * 1000)
       setCurrentPose(pose)
       const ctx = canvas!.getContext('2d')
