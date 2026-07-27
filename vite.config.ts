@@ -4,6 +4,8 @@ import { VitePWA } from 'vite-plugin-pwa'
 
 // https://vite.dev/config/
 export default defineConfig({
+  // Served from https://gregj91.github.io/golf-swing-analyser/
+  base: '/golf-swing-analyser/',
   plugins: [
     react(),
     VitePWA({
@@ -12,7 +14,8 @@ export default defineConfig({
       manifest: {
         name: 'Golf Swing Analyser',
         short_name: 'SwingAnalyser',
-        start_url: '/',
+        start_url: '/golf-swing-analyser/',
+        scope: '/golf-swing-analyser/',
         display: 'standalone',
         background_color: '#ffffff',
         theme_color: '#1b5e20',
