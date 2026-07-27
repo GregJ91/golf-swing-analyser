@@ -4,3 +4,65 @@
   padding: 1rem;
   font-family: system-ui, sans-serif;
 }
+
+.tabs {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.tabs button.active {
+  font-weight: bold;
+  text-decoration: underline;
+}
+
+.video-canvas-wrapper {
+  position: relative;
+  width: 360px;
+}
+
+.pose-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  width: 100%;
+  height: 100%;
+}
+
+.mark-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.error-text {
+  color: #b00020;
+}
+
+.warning-text {
+  color: #a15c00;
+}
+
+.key-frames {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.metrics-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1rem;
+}
+
+.metrics-table td, .metrics-table th {
+  border: 1px solid #ccc;
+  padding: 0.4rem;
+  text-align: left;
+}
+
+.metric-warning {
+  background: #fff3cd;
+}
