@@ -92,10 +92,15 @@ export function TrendCharts({ sessions }: { sessions: Session[] }) {
   if (sessions.length < 2) return null
   const allSeries = buildTrendSeries(sessions)
 
+  // A metric needs at least two sessions recorded from a view it's valid in
+  // before a trend line means anything.
+  const chartable = allSeries.filter((series) => series.points.length >= 2)
+  if (chartable.length === 0) return null
+
   return (
     <section className="trend-charts">
       <h2>Trends</h2>
-      {allSeries.map((series) => (
+      {chartable.map((series) => (
         <MetricChart key={series.key} series={series} />
       ))}
     </section>

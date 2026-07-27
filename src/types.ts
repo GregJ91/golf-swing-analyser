@@ -9,6 +9,11 @@ export type PoseLandmarks = Landmark[]
 
 export type KeyFramePosition = 'address' | 'top' | 'impact' | 'finish'
 
+// Where the camera was relative to the golfer. Each metric is only meaningful
+// from one view; sessions recorded before this field existed have it undefined
+// and are treated as face-on (the app's original assumed setup).
+export type SwingView = 'face-on' | 'down-the-line'
+
 export interface MetricResult {
   value: number
   benchmarkMin: number
@@ -39,6 +44,9 @@ export interface KeyFrame {
   timestampMs: number
   landmarks: PoseLandmarks
   snapshotImage: string
+  // Names of angle-relevant landmarks whose detection confidence was low when
+  // this frame was marked — angles derived from them may be unreliable.
+  lowVisibility?: string[]
 }
 
 export interface SessionKeyFrame extends KeyFrame {
@@ -48,6 +56,7 @@ export interface SessionKeyFrame extends KeyFrame {
 export interface Session {
   id: string
   date: string
+  view?: SwingView
   keyFrames: SessionKeyFrame[]
   metrics: SwingMetricsResult
 }

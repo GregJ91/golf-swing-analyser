@@ -8,7 +8,7 @@ import { TrendCharts } from './components/TrendCharts'
 import { listSessions, saveSession } from './storage/SessionStore'
 import { calculateAngles } from './swing/AngleCalculator'
 import { calculateSwingMetrics } from './swing/SwingMetrics'
-import type { KeyFrame, Session } from './types'
+import type { KeyFrame, Session, SwingView } from './types'
 
 type Tab = 'new' | 'history'
 type Stage = 'capture' | 'analyze' | 'summary'
@@ -21,6 +21,7 @@ function App() {
   const [saveError, setSaveError] = useState<string | null>(null)
   const [analysisError, setAnalysisError] = useState<string | null>(null)
   const [sessions, setSessions] = useState<Session[]>([])
+  const [view, setView] = useState<SwingView>('face-on')
 
   useEffect(() => {
     if (tab === 'history') {
@@ -52,6 +53,7 @@ function App() {
     const session: Session = {
       id: `${Date.now()}-${Math.random().toString(36).slice(2)}`,
       date: new Date().toISOString(),
+      view,
       keyFrames: keyFramesWithAngles,
       metrics,
     }
@@ -91,12 +93,26 @@ function App() {
       </nav>
 
       {tab === 'new' && stage === 'capture' && (
-        <VideoInput
-          onVideoReady={(url) => {
-            setVideoUrl(url)
-            setStage('analyze')
-          }}
-        />
+        <>
+          <div className="view-picker">
+            <span>Camera view:</span>
+            <button className={view === 'face-on' ? 'active' : ''} onClick={() => setView('face-on')}>
+              Face-on
+            </button>
+            <button
+              className={view === 'down-the-line' ? 'active' : ''}
+              onClick={() => setView('down-the-line')}
+            >
+              Down-the-line
+            </button>
+          </div>
+          <VideoInput
+            onVideoReady={(url) => {
+              setVideoUrl(url)
+              setStage('analyze')
+            }}
+          />
+        </>
       )}
 
       {tab === 'new' && stage === 'analyze' && videoUrl && (

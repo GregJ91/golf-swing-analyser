@@ -16,6 +16,24 @@
   text-decoration: underline;
 }
 
+.view-picker {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+  font-size: 0.9rem;
+}
+
+.view-picker button.active {
+  font-weight: bold;
+  outline: 2px solid #2e7d32;
+}
+
+.view-note {
+  color: #666;
+  font-size: 0.9rem;
+}
+
 /* The video keeps its intrinsic aspect ratio (height: auto) so its rendered box
    always matches the frame content with no letterboxing — the absolutely
    positioned canvas then lines up with the video pixels on any aspect ratio. */

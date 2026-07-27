@@ -1,4 +1,5 @@
 import type { Session, SwingMetricsResult } from '../types'
+import { isMetricValidForView } from './metricValidity'
 
 export interface TrendPoint {
   date: string
@@ -37,7 +38,10 @@ export function buildTrendSeries(sessions: Session[]): TrendSeries[] {
   const oldestFirst = [...sessions].sort((a, b) => a.date.localeCompare(b.date))
 
   return METRIC_DEFS.map(({ key, label, unit }) => {
-    const first = oldestFirst[0]?.metrics[key]
+    // Only chart a session's value when the metric is trustworthy from the
+    // camera view that session was recorded in.
+    const validSessions = oldestFirst.filter((session) => isMetricValidForView(key, session.view))
+    const first = validSessions[0]?.metrics[key]
     const [fallbackMin, fallbackMax] = FALLBACK_BENCHMARKS[key]
     return {
       key,
@@ -45,7 +49,7 @@ export function buildTrendSeries(sessions: Session[]): TrendSeries[] {
       unit,
       benchmarkMin: first?.benchmarkMin ?? fallbackMin,
       benchmarkMax: first?.benchmarkMax ?? fallbackMax,
-      points: oldestFirst.map((session) => ({
+      points: validSessions.map((session) => ({
         date: session.date,
         value: session.metrics[key].value,
       })),

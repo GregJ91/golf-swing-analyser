@@ -1,4 +1,15 @@
-import type { MetricResult, Session } from '../types'
+import type { MetricResult, Session, SwingMetricsResult } from '../types'
+import { isMetricValidForView } from '../swing/metricValidity'
+
+const METRIC_ROWS: Array<{ key: keyof SwingMetricsResult; label: string; unit: string }> = [
+  { key: 'tempoRatio', label: 'Tempo ratio (backswing:downswing)', unit: ':1' },
+  { key: 'xFactorDeg', label: 'X-Factor', unit: '°' },
+  { key: 'hipSwayNormalized', label: 'Hip sway', unit: '' },
+  { key: 'earlyExtensionDeg', label: 'Early extension', unit: '°' },
+  { key: 'headMovementNormalized', label: 'Head movement', unit: '' },
+]
+
+const VIEW_LABELS = { 'face-on': 'Face-on', 'down-the-line': 'Down-the-line' } as const
 
 function MetricRow({ label, metric, unit }: { label: string; metric: MetricResult; unit: string }) {
   return (
@@ -18,15 +29,27 @@ function MetricRow({ label, metric, unit }: { label: string; metric: MetricResul
 }
 
 export function SessionSummary({ session }: { session: Session }) {
+  const view = session.view ?? 'face-on'
+  const visibleRows = METRIC_ROWS.filter((row) => isMetricValidForView(row.key, session.view))
+
   return (
     <div className="session-summary">
       <h2>Swing session — {new Date(session.date).toLocaleString()}</h2>
+      <p className="view-note">
+        {VIEW_LABELS[view]} view — showing the metrics that are reliable from this camera angle.
+      </p>
 
       <div className="key-frames">
         {session.keyFrames.map((frame) => (
           <div key={frame.position} className="key-frame-card">
             <h3>{frame.position}</h3>
             <img src={frame.snapshotImage} alt={`${frame.position} snapshot`} width={180} />
+            {frame.lowVisibility && frame.lowVisibility.length > 0 && (
+              <p className="warning-text">
+                Partly out of frame: {frame.lowVisibility.join(', ')} — angles for this frame may be
+                unreliable.
+              </p>
+            )}
             <ul>
               <li>Spine tilt: {frame.angles.spineTiltDeg.toFixed(1)}°</li>
               <li>Shoulder line: {frame.angles.shoulderLineAngleDeg.toFixed(1)}°</li>
@@ -50,11 +73,9 @@ export function SessionSummary({ session }: { session: Session }) {
           </tr>
         </thead>
         <tbody>
-          <MetricRow label="Tempo ratio (backswing:downswing)" metric={session.metrics.tempoRatio} unit=":1" />
-          <MetricRow label="X-Factor" metric={session.metrics.xFactorDeg} unit="°" />
-          <MetricRow label="Hip sway" metric={session.metrics.hipSwayNormalized} unit="" />
-          <MetricRow label="Early extension" metric={session.metrics.earlyExtensionDeg} unit="°" />
-          <MetricRow label="Head movement" metric={session.metrics.headMovementNormalized} unit="" />
+          {visibleRows.map((row) => (
+            <MetricRow key={row.key} label={row.label} metric={session.metrics[row.key]} unit={row.unit} />
+          ))}
         </tbody>
       </table>
     </div>
