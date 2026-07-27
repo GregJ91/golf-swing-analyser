@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { detectPose, loadPoseLandmarker } from '../pose/PoseProcessor'
+import { lowVisibilityLandmarks } from '../swing/landmarkVisibility'
 import { KEY_FRAME_POSITIONS } from '../types'
 import type { KeyFrame, KeyFramePosition, PoseLandmarks } from '../types'
 
@@ -107,11 +108,13 @@ export function SwingViewer({ videoUrl, onComplete }: SwingViewerProps) {
       y: point.y * canvas.height,
     }))
 
+    const lowVisibility = lowVisibilityLandmarks(currentPose)
     const keyFrame: KeyFrame = {
       position,
       timestampMs: video.currentTime * 1000,
       landmarks: scaledLandmarks,
       snapshotImage: snapshotCanvas.toDataURL('image/jpeg', 0.8),
+      ...(lowVisibility.length > 0 ? { lowVisibility } : {}),
     }
 
     setMarkedFrames((frames) => [...frames.filter((frame) => frame.position !== position), keyFrame])
@@ -167,6 +170,14 @@ export function SwingViewer({ videoUrl, onComplete }: SwingViewerProps) {
           )
         })}
       </div>
+      {markedFrames
+        .filter((frame) => frame.lowVisibility && frame.lowVisibility.length > 0)
+        .map((frame) => (
+          <p key={frame.position} className="warning-text">
+            {frame.position}: {frame.lowVisibility!.join(', ')} partly out of frame — consider
+            re-marking or re-filming with your whole body visible.
+          </p>
+        ))}
       <button
         className="finish-button"
         disabled={!allMarked}
