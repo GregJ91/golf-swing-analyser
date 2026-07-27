@@ -85,6 +85,43 @@
   color: #b00020;
 }
 
+.compare-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.85rem;
+}
+
+.comparison-pair {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.comparison-pair figure {
+  margin: 0;
+  flex: 1;
+  min-width: 0;
+}
+
+.comparison-pair img {
+  width: 100%;
+  height: auto;
+}
+
+.comparison-pair figcaption {
+  font-size: 0.8rem;
+  color: #666;
+  text-align: center;
+}
+
+.advice ul {
+  padding-left: 1.2rem;
+}
+
+.advice li {
+  margin-bottom: 0.5rem;
+}
+
 .trend-charts {
   margin-bottom: 1.5rem;
 }

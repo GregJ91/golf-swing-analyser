@@ -4,6 +4,7 @@ import { VideoInput } from './components/VideoInput'
 import { SwingViewer } from './components/SwingViewer'
 import { SessionSummary } from './components/SessionSummary'
 import { HistoryList } from './components/HistoryList'
+import { ComparisonView } from './components/ComparisonView'
 import { TrendCharts } from './components/TrendCharts'
 import { listSessions, saveSession } from './storage/SessionStore'
 import { calculateAngles } from './swing/AngleCalculator'
@@ -22,6 +23,12 @@ function App() {
   const [analysisError, setAnalysisError] = useState<string | null>(null)
   const [sessions, setSessions] = useState<Session[]>([])
   const [view, setView] = useState<SwingView>('face-on')
+  const [compareIds, setCompareIds] = useState<string[]>([])
+  const [comparing, setComparing] = useState(false)
+
+  function toggleCompare(id: string) {
+    setCompareIds((ids) => (ids.includes(id) ? ids.filter((x) => x !== id) : [...ids, id]))
+  }
 
   useEffect(() => {
     if (tab === 'history') {
@@ -129,13 +136,34 @@ function App() {
         </>
       )}
 
-      {tab === 'history' && !activeSession && (
+      {tab === 'history' && !activeSession && comparing && compareIds.length === 2 && (
+        <>
+          <button onClick={() => setComparing(false)}>Back to list</button>
+          <ComparisonView
+            sessions={
+              sessions.filter((s) => compareIds.includes(s.id)) as [Session, Session]
+            }
+          />
+        </>
+      )}
+
+      {tab === 'history' && !activeSession && !comparing && (
         <>
           <TrendCharts sessions={sessions} />
+          {compareIds.length === 2 && (
+            <button className="finish-button" onClick={() => setComparing(true)}>
+              Compare selected
+            </button>
+          )}
           <HistoryList
             sessions={sessions}
             onSelect={setActiveSession}
-            onDeleted={() => listSessions().then(setSessions)}
+            onDeleted={() => {
+              setCompareIds([])
+              listSessions().then(setSessions)
+            }}
+            compareIds={compareIds}
+            onToggleCompare={toggleCompare}
           />
         </>
       )}
