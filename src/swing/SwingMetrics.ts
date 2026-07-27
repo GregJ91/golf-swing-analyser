@@ -26,6 +26,10 @@ export function calculateSwingMetrics(keyFrames: KeyFrame[]): SwingMetricsResult
   const top = findKeyFrame(keyFrames, 'top')
   const impact = findKeyFrame(keyFrames, 'impact')
 
+  if (!(address.timestampMs < top.timestampMs && top.timestampMs < impact.timestampMs)) {
+    throw new Error('Key frames must be in chronological order: address < top < impact')
+  }
+
   // Tempo ratio: backswing duration : downswing duration. Pro benchmark ~3:1.
   const backswingMs = top.timestampMs - address.timestampMs
   const downswingMs = impact.timestampMs - top.timestampMs

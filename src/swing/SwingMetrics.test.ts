@@ -130,4 +130,30 @@ describe('calculateSwingMetrics', () => {
 
     expect(() => calculateSwingMetrics(keyFrames)).toThrow()
   })
+
+  it('throws if key frames are not in chronological order (top and impact at the same timestamp)', () => {
+    const keyFrames = [
+      makeKeyFrame('address', 0),
+      makeKeyFrame('top', 900),
+      makeKeyFrame('impact', 900),
+      makeKeyFrame('finish', 1500),
+    ]
+
+    expect(() => calculateSwingMetrics(keyFrames)).toThrow(
+      'Key frames must be in chronological order: address < top < impact',
+    )
+  })
+
+  it('throws if key frames are out of order (impact before top)', () => {
+    const keyFrames = [
+      makeKeyFrame('address', 0),
+      makeKeyFrame('top', 900),
+      makeKeyFrame('impact', 500),
+      makeKeyFrame('finish', 1500),
+    ]
+
+    expect(() => calculateSwingMetrics(keyFrames)).toThrow(
+      'Key frames must be in chronological order: address < top < impact',
+    )
+  })
 })
