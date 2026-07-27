@@ -53,13 +53,14 @@ export function suggestKeyFrames(
   }
   if (topIdx <= 0) return null
 
-  let addressIdx = 0
-  for (let i = topIdx; i >= 1; i--) {
-    if (speeds[i] < stillThreshold) {
-      addressIdx = i
-      break
-    }
-  }
+  // A real swing decelerates to near-zero AT the top, so "last still sample
+  // before the top" would find the top itself. Walk back past that transition
+  // pause, then through the moving backswing; the still moment before the
+  // backswing began is the address.
+  let addressIdx = topIdx
+  while (addressIdx >= 1 && speeds[addressIdx] < stillThreshold) addressIdx--
+  while (addressIdx >= 1 && speeds[addressIdx] >= stillThreshold) addressIdx--
+  addressIdx = Math.max(addressIdx, 0)
 
   let finishIdx = samples.length - 1
   for (let i = impactIdx + 2; i < samples.length; i++) {

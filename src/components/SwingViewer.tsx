@@ -24,9 +24,17 @@ const POSE_CONNECTIONS: Array<[number, number]> = [
 
 const SCAN_FPS = 15
 
-function seekTo(video: HTMLVideoElement, timeSeconds: number): Promise<void> {
-  return new Promise((resolve) => {
+// Rejects if the browser never fires 'seeked' — without the timeout, one
+// swallowed event would leave the scanner stuck at "Scanning…" forever with
+// no way to recover.
+function seekTo(video: HTMLVideoElement, timeSeconds: number, timeoutMs = 4000): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => {
+      video.removeEventListener('seeked', onSeeked)
+      reject(new Error('Video seek timed out'))
+    }, timeoutMs)
     const onSeeked = () => {
+      clearTimeout(timer)
       video.removeEventListener('seeked', onSeeked)
       resolve()
     }
@@ -239,6 +247,8 @@ export function SwingViewer({ videoUrl, onComplete }: SwingViewerProps) {
           : 'Suggested some frames but not all — mark the rest manually.',
       )
       await seekTo(video, suggested.address / 1000)
+    } catch {
+      setScanMessage('Scanning failed — mark the frames manually.')
     } finally {
       scanningRef.current = false
       setScanning(false)

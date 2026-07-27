@@ -5,13 +5,17 @@ import type { TrajectorySample } from './keyFrameDetection'
 // Builds a synthetic swing sampled every 66ms:
 //   0-600ms    still at address (wrist ~(500, 600))
 //   600-1400ms backswing up to (300, 200)
-//   1400-1700ms fast downswing back to (500, 600) — peak speed
-//   1700-2300ms decelerating follow-through up to (350, 250)
-//   2300-3000ms still at finish
-function syntheticSwing(): TrajectorySample[] {
+//   [optional pauseAtTopMs of stillness at the top]
+//   then 300ms fast downswing back to (500, 600) — peak speed
+//   then 600ms decelerating follow-through up to (350, 250)
+//   then still at finish until 3000ms after the pause
+function syntheticSwing(pauseAtTopMs = 0): TrajectorySample[] {
   const samples: TrajectorySample[] = []
   const lerp = (a: number, b: number, t: number) => a + (b - a) * t
-  for (let ms = 0; ms <= 3000; ms += 66) {
+  const downswingStart = 1400 + pauseAtTopMs
+  const impactAt = downswingStart + 300
+  const finishAt = impactAt + 600
+  for (let ms = 0; ms <= 3000 + pauseAtTopMs; ms += 66) {
     let x: number
     let y: number
     if (ms < 600) {
@@ -21,12 +25,15 @@ function syntheticSwing(): TrajectorySample[] {
       const t = (ms - 600) / 800
       x = lerp(500, 300, t)
       y = lerp(600, 200, t)
-    } else if (ms < 1700) {
-      const t = (ms - 1400) / 300
+    } else if (ms < downswingStart) {
+      x = 300
+      y = 200
+    } else if (ms < impactAt) {
+      const t = (ms - downswingStart) / 300
       x = lerp(300, 500, t)
       y = lerp(200, 600, t)
-    } else if (ms < 2300) {
-      const t = (ms - 1700) / 600
+    } else if (ms < finishAt) {
+      const t = (ms - impactAt) / 600
       x = lerp(500, 350, t)
       y = lerp(600, 250, t)
     } else {
@@ -50,6 +57,17 @@ describe('suggestKeyFrames', () => {
     expect(result!.impact).toBeGreaterThanOrEqual(1400)
     expect(result!.impact).toBeLessThanOrEqual(1800)
     expect(result!.finish).toBeGreaterThanOrEqual(2300)
+    expect(result!.address).toBeLessThan(result!.top)
+    expect(result!.top).toBeLessThan(result!.impact)
+  })
+
+  it('still finds the address when the swing pauses at the top', () => {
+    const result = suggestKeyFrames(syntheticSwing(300))
+
+    expect(result).not.toBeNull()
+    // Address must be back at the setup stillness, not inside the top pause.
+    expect(result!.address).toBeLessThanOrEqual(750)
+    expect(result!.top).toBeGreaterThanOrEqual(1300)
     expect(result!.address).toBeLessThan(result!.top)
     expect(result!.top).toBeLessThan(result!.impact)
   })
