@@ -85,6 +85,13 @@
   color: #b00020;
 }
 
+.backup-controls {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
 .compare-checkbox {
   display: flex;
   align-items: center;

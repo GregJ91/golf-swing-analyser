@@ -7,6 +7,7 @@ import { HistoryList } from './components/HistoryList'
 import { ComparisonView } from './components/ComparisonView'
 import { TrendCharts } from './components/TrendCharts'
 import { listSessions, saveSession } from './storage/SessionStore'
+import { parseBackup, serializeSessions } from './storage/backup'
 import { calculateAngles } from './swing/AngleCalculator'
 import { calculateSwingMetrics } from './swing/SwingMetrics'
 import type { KeyFrame, Session, SwingView } from './types'
@@ -28,6 +29,34 @@ function App() {
 
   function toggleCompare(id: string) {
     setCompareIds((ids) => (ids.includes(id) ? ids.filter((x) => x !== id) : [...ids, id]))
+  }
+
+  const [backupMessage, setBackupMessage] = useState<string | null>(null)
+
+  function exportSessions() {
+    const json = serializeSessions(sessions, new Date().toISOString())
+    const url = URL.createObjectURL(new Blob([json], { type: 'application/json' }))
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `golf-swing-sessions-${new Date().toISOString().slice(0, 10)}.json`
+    link.click()
+    URL.revokeObjectURL(url)
+  }
+
+  async function importSessions(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0]
+    event.target.value = ''
+    if (!file) return
+    try {
+      const restored = parseBackup(await file.text())
+      for (const session of restored) {
+        await saveSession(session)
+      }
+      setSessions(await listSessions())
+      setBackupMessage(`Imported ${restored.length} session${restored.length === 1 ? '' : 's'}.`)
+    } catch (error) {
+      setBackupMessage(error instanceof Error ? error.message : 'Import failed.')
+    }
   }
 
   useEffect(() => {
@@ -165,6 +194,14 @@ function App() {
             compareIds={compareIds}
             onToggleCompare={toggleCompare}
           />
+          <div className="backup-controls">
+            {sessions.length > 0 && <button onClick={exportSessions}>Export all</button>}
+            <label className="upload-label">
+              Import backup
+              <input type="file" accept="application/json,.json" onChange={importSessions} />
+            </label>
+          </div>
+          {backupMessage && <p className="view-note">{backupMessage}</p>}
         </>
       )}
       {tab === 'history' && activeSession && (
