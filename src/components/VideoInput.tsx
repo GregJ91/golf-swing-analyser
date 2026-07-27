@@ -20,6 +20,19 @@ export function VideoInput({ onVideoReady }: VideoInputProps) {
     }
   }, [isRecording])
 
+  // If the component unmounts mid-recording (user navigates away), nothing else
+  // stops the recorder or releases the camera — the light would stay on until
+  // the tab closes.
+  useEffect(() => {
+    return () => {
+      if (mediaRecorderRef.current?.state === 'recording') {
+        mediaRecorderRef.current.stop()
+      }
+      streamRef.current?.getTracks().forEach((track) => track.stop())
+      streamRef.current = null
+    }
+  }, [])
+
   async function startRecording() {
     setPermissionError(null)
     try {
