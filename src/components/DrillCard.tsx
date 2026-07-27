@@ -21,6 +21,29 @@ export function DrillCard({ drill, focus }: { drill: Drill; focus?: boolean }) {
         ))}
       </ol>
       <p className="drill-reps">{drill.reps}</p>
+      {drill.tips.length > 0 && (
+        <div className="drill-tips">
+          <p className="drill-tips-label">What instructors say</p>
+          <ul>
+            {drill.tips.map((tip) => (
+              <li key={tip}>{tip}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+      {drill.sources && drill.sources.length > 0 && (
+        <p className="drill-sources">
+          Read more:{' '}
+          {drill.sources.map((source, index) => (
+            <span key={source.url}>
+              {index > 0 && ' · '}
+              <a href={source.url} target="_blank" rel="noreferrer">
+                {source.label}
+              </a>
+            </span>
+          ))}
+        </p>
+      )}
     </article>
   )
 }

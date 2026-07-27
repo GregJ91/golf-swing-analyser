@@ -21,6 +21,7 @@ function App() {
   const [stage, setStage] = useState<Stage>('capture')
   const [videoUrl, setVideoUrl] = useState<string | null>(null)
   const [activeSession, setActiveSession] = useState<Session | null>(null)
+  const [previousSession, setPreviousSession] = useState<Session | null>(null)
   const [saveError, setSaveError] = useState<string | null>(null)
   const [analysisError, setAnalysisError] = useState<string | null>(null)
   const [sessions, setSessions] = useState<Session[]>([])
@@ -83,6 +84,11 @@ function App() {
     }
     setAnalysisError(null)
 
+    // The most recent existing session (before this one is saved) powers the
+    // "last focus" follow-up on the summary.
+    const existing = await listSessions()
+    setPreviousSession(existing[0] ?? null)
+
     const keyFramesWithAngles = keyFrames.map((frame) => ({
       ...frame,
       angles: calculateAngles(frame.landmarks),
@@ -110,10 +116,18 @@ function App() {
     if (videoUrl) URL.revokeObjectURL(videoUrl)
     setVideoUrl(null)
     setActiveSession(null)
+    setPreviousSession(null)
     setSaveError(null)
     setAnalysisError(null)
     setStage('capture')
     setTab('new')
+  }
+
+  function openSession(session: Session) {
+    setActiveSession(session)
+    // sessions is newest-first; the follow-up compares against the session
+    // recorded immediately before the one being viewed.
+    setPreviousSession(sessions.find((s) => s.date < session.date) ?? null)
   }
 
   return (
@@ -174,7 +188,7 @@ function App() {
       {tab === 'new' && stage === 'summary' && activeSession && (
         <>
           {saveError && <p className="error-text">{saveError}</p>}
-          <SessionSummary session={activeSession} />
+          <SessionSummary session={activeSession} previousSession={previousSession ?? undefined} />
         </>
       )}
 
@@ -199,7 +213,7 @@ function App() {
           )}
           <HistoryList
             sessions={sessions}
-            onSelect={setActiveSession}
+            onSelect={openSession}
             onDeleted={() => {
               setCompareIds([])
               listSessions().then(setSessions)
@@ -220,7 +234,7 @@ function App() {
       {tab === 'history' && activeSession && (
         <>
           <button onClick={() => setActiveSession(null)}>Back to list</button>
-          <SessionSummary session={activeSession} />
+          <SessionSummary session={activeSession} previousSession={previousSession ?? undefined} />
         </>
       )}
 

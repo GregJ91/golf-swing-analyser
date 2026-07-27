@@ -1,5 +1,6 @@
 import type { MetricResult, Session, SwingMetricsResult } from '../types'
 import { drillFor, prioritizeFaults } from '../swing/drills'
+import { buildFollowUp } from '../swing/followUp'
 import { isMetricValidForView } from '../swing/metricValidity'
 import { AnnotatedSnapshot } from './AnnotatedSnapshot'
 import { DrillCard } from './DrillCard'
@@ -59,9 +60,17 @@ function MetricGauge({ label, metric, unit }: { label: string; metric: MetricRes
   )
 }
 
-export function SessionSummary({ session }: { session: Session }) {
+export function SessionSummary({
+  session,
+  previousSession,
+}: {
+  session: Session
+  previousSession?: Session
+}) {
   const view = session.view ?? 'face-on'
   const visibleRows = METRIC_ROWS.filter((row) => isMetricValidForView(row.key, session.view))
+  const followUp = buildFollowUp(session, previousSession)
+  const followUpRow = followUp ? METRIC_ROWS.find((row) => row.key === followUp.key) : undefined
 
   return (
     <div className="session-summary">
@@ -69,6 +78,18 @@ export function SessionSummary({ session }: { session: Session }) {
       <p className="view-note">
         {VIEW_LABELS[view]} view — showing the metrics that are reliable from this camera angle.
       </p>
+
+      {followUp && followUpRow && (
+        <p className={followUp.resolved || followUp.improved ? 'follow-up good' : 'follow-up'}>
+          Last focus — {followUpRow.label}: {formatValue(followUp.before, followUpRow.unit)} →{' '}
+          {formatValue(followUp.after, followUpRow.unit)}.{' '}
+          {followUp.resolved
+            ? 'In range now — the drill is working.'
+            : followUp.improved
+              ? 'Closer to range — keep at the drill.'
+              : 'No better yet — stick with the drill, slow and exaggerated.'}
+        </p>
+      )}
 
       <div className="key-frames">
         {session.keyFrames.map((frame) => (

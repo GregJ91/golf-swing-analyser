@@ -448,6 +448,55 @@ button:disabled {
   color: var(--sand);
 }
 
+.follow-up {
+  background: var(--pine-900);
+  border: 1px solid var(--flag);
+  border-radius: var(--radius);
+  padding: 0.7rem 0.9rem;
+  font-size: 0.85rem;
+  color: var(--chalk);
+}
+
+.follow-up.good {
+  border-color: var(--tracer);
+}
+
+.drill-tips {
+  margin-top: 0.6rem;
+  border-top: 1px solid var(--pine-800);
+  padding-top: 0.5rem;
+}
+
+.drill-tips-label {
+  margin: 0 0 0.3rem;
+  font-size: 0.62rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--chalk-faint);
+}
+
+.drill-tips ul {
+  margin: 0;
+  padding-left: 1.1rem;
+  font-size: 0.78rem;
+  color: var(--chalk-dim);
+}
+
+.drill-tips li {
+  margin-bottom: 0.3rem;
+}
+
+.drill-sources {
+  margin: 0.5rem 0 0;
+  font-size: 0.72rem;
+  color: var(--chalk-faint);
+}
+
+.drill-sources a {
+  color: var(--sand);
+}
+
 .film-tips {
   margin-top: 1.25rem;
   font-size: 0.82rem;
