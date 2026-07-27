@@ -1,26 +1,12 @@
 import { useEffect, useRef, useState } from 'react'
 import { detectPose, loadPoseLandmarker } from '../pose/PoseProcessor'
 import { LANDMARK } from '../pose/landmarkIndices'
+import { POSE_CONNECTIONS } from '../pose/poseConnections'
 import { lowVisibilityLandmarks } from '../swing/landmarkVisibility'
 import { suggestKeyFrames } from '../swing/keyFrameDetection'
 import type { TrajectorySample } from '../swing/keyFrameDetection'
 import { KEY_FRAME_POSITIONS } from '../types'
 import type { KeyFrame, KeyFramePosition, PoseLandmarks } from '../types'
-
-const POSE_CONNECTIONS: Array<[number, number]> = [
-  [LANDMARK.LEFT_SHOULDER, LANDMARK.RIGHT_SHOULDER],
-  [LANDMARK.LEFT_SHOULDER, LANDMARK.LEFT_ELBOW],
-  [LANDMARK.LEFT_ELBOW, LANDMARK.LEFT_WRIST],
-  [LANDMARK.RIGHT_SHOULDER, LANDMARK.RIGHT_ELBOW],
-  [LANDMARK.RIGHT_ELBOW, LANDMARK.RIGHT_WRIST],
-  [LANDMARK.LEFT_SHOULDER, LANDMARK.LEFT_HIP],
-  [LANDMARK.RIGHT_SHOULDER, LANDMARK.RIGHT_HIP],
-  [LANDMARK.LEFT_HIP, LANDMARK.RIGHT_HIP],
-  [LANDMARK.LEFT_HIP, LANDMARK.LEFT_KNEE],
-  [LANDMARK.LEFT_KNEE, LANDMARK.LEFT_ANKLE],
-  [LANDMARK.RIGHT_HIP, LANDMARK.RIGHT_KNEE],
-  [LANDMARK.RIGHT_KNEE, LANDMARK.RIGHT_ANKLE],
-]
 
 const SCAN_FPS = 15
 

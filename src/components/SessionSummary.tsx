@@ -1,6 +1,7 @@
 import type { MetricResult, Session, SwingMetricsResult } from '../types'
 import { adviceFor } from '../swing/advice'
 import { isMetricValidForView } from '../swing/metricValidity'
+import { AnnotatedSnapshot } from './AnnotatedSnapshot'
 
 const METRIC_ROWS: Array<{ key: keyof SwingMetricsResult; label: string; unit: string }> = [
   { key: 'tempoRatio', label: 'Tempo ratio', unit: ':1' },
@@ -72,7 +73,12 @@ export function SessionSummary({ session }: { session: Session }) {
         {session.keyFrames.map((frame) => (
           <div key={frame.position} className="key-frame-card">
             <h3>{frame.position}</h3>
-            <img src={frame.snapshotImage} alt={`${frame.position} snapshot`} width={180} />
+            <AnnotatedSnapshot
+              snapshotImage={frame.snapshotImage}
+              landmarks={frame.landmarks}
+              angles={frame.angles}
+              alt={`${frame.position} snapshot with spine, shoulder, and hip angle lines`}
+            />
             {frame.lowVisibility && frame.lowVisibility.length > 0 && (
               <p className="warning-text">
                 Partly out of frame: {frame.lowVisibility.join(', ')} — angles for this frame may be

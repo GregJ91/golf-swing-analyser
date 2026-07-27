@@ -1,6 +1,7 @@
 import { KEY_FRAME_POSITIONS } from '../types'
 import type { Session, SwingMetricsResult } from '../types'
 import { validMetricsForView } from '../swing/metricValidity'
+import { AnnotatedSnapshot } from './AnnotatedSnapshot'
 
 const METRIC_LABELS: Record<keyof SwingMetricsResult, { label: string; unit: string }> = {
   tempoRatio: { label: 'Tempo ratio', unit: ':1' },
@@ -45,6 +46,17 @@ export function ComparisonView({ sessions }: { sessions: [Session, Session] }) {
                 <figcaption>{shortDate(newer.date)}</figcaption>
               </figure>
             </div>
+            <figure className="ghost-overlay">
+              <AnnotatedSnapshot
+                snapshotImage={newerFrame.snapshotImage}
+                landmarks={newerFrame.landmarks}
+                ghostLandmarks={olderFrame.landmarks}
+                alt={`${position}: ${shortDate(newer.date)} skeleton in green with ${shortDate(older.date)} overlaid as a dashed ghost, aligned at the hips`}
+              />
+              <figcaption>
+                Overlay — green is {shortDate(newer.date)}, dashed ghost is {shortDate(older.date)}
+              </figcaption>
+            </figure>
           </div>
         )
       })}
