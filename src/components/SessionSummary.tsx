@@ -1,4 +1,5 @@
 import type { MetricResult, Session, SwingMetricsResult } from '../types'
+import { adviceFor } from '../swing/advice'
 import { isMetricValidForView } from '../swing/metricValidity'
 
 const METRIC_ROWS: Array<{ key: keyof SwingMetricsResult; label: string; unit: string }> = [
@@ -78,6 +79,25 @@ export function SessionSummary({ session }: { session: Session }) {
           ))}
         </tbody>
       </table>
+
+      {(() => {
+        const tips = visibleRows
+          .map((row) => ({ label: row.label, tip: adviceFor(row.key, session.metrics[row.key]) }))
+          .filter((entry): entry is { label: string; tip: string } => entry.tip !== null)
+        if (tips.length === 0) return null
+        return (
+          <section className="advice">
+            <h3>What to work on</h3>
+            <ul>
+              {tips.map(({ label, tip }) => (
+                <li key={label}>
+                  <strong>{label}:</strong> {tip}
+                </li>
+              ))}
+            </ul>
+          </section>
+        )
+      })()}
     </div>
   )
 }
