@@ -117,6 +117,17 @@ export function SwingViewer({ videoUrl, onComplete }: SwingViewerProps) {
     setMarkedFrames((frames) => [...frames.filter((frame) => frame.position !== position), keyFrame])
   }
 
+  // Impact lasts one or two frames, and the native scrub bar is too coarse to land
+  // on it. Step in 1/60s increments: exact single frames on 60fps recordings, half
+  // frames (two taps per frame) on 30fps ones.
+  function stepFrame(direction: 1 | -1) {
+    const video = videoRef.current
+    if (!video) return
+    video.pause()
+    const next = video.currentTime + direction / 60
+    video.currentTime = Math.min(Math.max(next, 0), video.duration || next)
+  }
+
   const allMarked = KEY_FRAME_POSITIONS.every((pos) =>
     markedFrames.some((frame) => frame.position === pos),
   )
@@ -140,6 +151,10 @@ export function SwingViewer({ videoUrl, onComplete }: SwingViewerProps) {
       </div>
       {!modelReady && <p>Loading pose model...</p>}
       {modelReady && !hasPose && <p className="warning-text">No pose detected in this frame.</p>}
+      <div className="frame-step-buttons">
+        <button onClick={() => stepFrame(-1)}>◀ frame</button>
+        <button onClick={() => stepFrame(1)}>frame ▶</button>
+      </div>
       <div className="mark-buttons">
         {KEY_FRAME_POSITIONS.map((position) => {
           const marked = markedFrames.find((frame) => frame.position === position)

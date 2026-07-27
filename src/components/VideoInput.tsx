@@ -36,7 +36,12 @@ export function VideoInput({ onVideoReady }: VideoInputProps) {
   async function startRecording() {
     setPermissionError(null)
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' }, audio: false })
+      const stream = await navigator.mediaDevices.getUserMedia({
+        // 60fps doubles the odds of a clean impact frame; browsers fall back
+        // gracefully if the camera can't do it.
+        video: { facingMode: 'environment', frameRate: { ideal: 60 } },
+        audio: false,
+      })
       streamRef.current = stream
       chunksRef.current = []
       const recorder = new MediaRecorder(stream)

@@ -67,6 +67,12 @@
   color: #b00020;
 }
 
+.frame-step-buttons {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
 .mark-buttons {
   display: flex;
   flex-wrap: wrap;
